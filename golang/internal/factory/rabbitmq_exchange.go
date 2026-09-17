@@ -8,6 +8,8 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
+// TODO: Pending to think how to remove some repeated code from both middleware implementations
+
 type RabbitExchangeMiddleware struct {
 	Exchange     string
 	Connection   *amqp091.Connection
