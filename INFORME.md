@@ -31,3 +31,24 @@ Si bien no tengo forma de saber cuanto trabajo demanda cada mensaje, siguiendo l
 Por ejemplo, si tuviera 10 mensajes que pueden ser alternadamente pesados o livianos (tardando más segs respectivamente) repartidos entre dos consumidores, uno puede tardar sustancialmente más que el otro que estaría esperando por mensajes. Aunque el otro consumidor este "libre" no podría hacer nada porque esos mensajes ya estaría unacked asignados al primer consumidor y un mensaje tiene un único dueño a la vez.
 
 Eligo prefetech de 1 e intercalo. Sobre el mismo ejemplo anterior, los pesados se reparten ahora entre ambos consumidores.
+
+## Exchange
+
+El giro en esta implementación fue entender que el exchange funciona solo como router de los mensajes que envía el productor.
+Es decir, dado un mensaje y una routing key, consulta los bindings asociados para saber a qué cola de destino debe envía ese mensaje.
+
+Basicamente, el bindeo está dado por los mensajes llegando al exchange E con una key K que van a una cola Q.
+
+### Decisiones
+
+Si al momento de mandar mensajes, todavía no hay un binding de la routing key a la cola, los mensajes simplemente no llegan (porque el exchange no persiste nada). No estoy manejando este escenario.
+
+Elegir un exchange direct define únicamente qué mensajes entran a una cola (la routing key del mensaje tiene que coincidir exactamente con la binding key), pero no define a cuántos consumidores les llega. Si todos los consumidores comparten una misma cola con nombre bindeada a K, esa cola reparte round-robin y tengo competing consumers, o sea, un mensaje procesado por un único consumidor. Si en cambio cada consumidor declara su propia cola anónima bindeada a K, el exchange copia el mensaje en cada una de esas colas y todos reciben su propia copia.
+
+Es también lo que me permite ocultar el detalle de la cola, porque la interfaz del middleware solo recibe el exchange y las routing keys y no hay ningún nombre de cola que exponer, así que dejo que el broker genere uno.
+
+Ato la cola a la conexión para que nadie más pueda utilizarla y que le broker pueda eliminarla cuando la conexión se haya cerrado.
+
+Como la cola vive lo que vive la conexión, tampoco tiene sentido que sea durable. Sí dejé el exchange como durable, porque a diferencia de las colas, el exchange es la pieza compartida de la topología y quiero que siga existiendo aunque en ese momento no haya nadie conectado.
+
+Cambié en ambas implementaciones el flag para que no se re-encolen mensajes fallidos porque entro en un loop infinito, estoy eligiendo perder literalmente el mensaje, no implementé un mecanismo para recuperarme de esa condición.
