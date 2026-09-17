@@ -41,6 +41,11 @@ func InitializeRabbitWQ(queueName string, connectionSettings m.ConnSettings) (*R
 		return nil, middleware.ErrMessageMiddlewareMessage
 	}
 
+	err = channel.Qos(1, 0, false)
+	if err != nil {
+		return nil, middleware.ErrMessageMiddlewareMessage
+	}
+
 	const EMPTY_NAME = ""
 
 	return &RabbitWorkQueueMiddleware{
