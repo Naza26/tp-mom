@@ -132,7 +132,7 @@ func (rabbitMiddleware *RabbitExchangeMiddleware) StartConsuming(callbackFunc fu
 	for delivery := range messages {
 		receivedMessage := middleware.Message{Body: string(delivery.Body)}
 		ack := func() { delivery.Ack(false) }
-		nack := func() { delivery.Nack(false, true) }
+		nack := func() { delivery.Nack(false, false) }
 		callbackFunc(receivedMessage, ack, nack)
 	}
 
