@@ -13,5 +13,9 @@ func CreateQueueMiddleware(queueName string, connectionSettings m.ConnSettings) 
 }
 
 func CreateExchangeMiddleware(exchange string, keys []string, connectionSettings m.ConnSettings) (m.Middleware, error) {
-	return nil, nil
+	rabbitExchange, err := InitializeRabbitExchange(exchange, keys, connectionSettings)
+	if err != nil {
+		return nil, err
+	}
+	return rabbitExchange, nil
 }
